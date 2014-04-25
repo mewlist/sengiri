@@ -1,6 +1,6 @@
 # Sengiri
 
-Flexible sharding access with ActiveRecord
+Flexible sharding access for Ruby on Rails with ActiveRecord
 
 ## Sharding model generator
 
