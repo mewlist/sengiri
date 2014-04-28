@@ -14,7 +14,6 @@ module Sengiri
       def create_migration_file
         set_local_assigns!
         validate_file_name!
-        binding.pry
         migration_template @migration_template, "db/sengiri/#{self.group}/#{file_name}.rb"
       end
     end
