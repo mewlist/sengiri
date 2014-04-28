@@ -4,13 +4,13 @@ class SengiriModel < Sengiri::Model::Base
   sharding_group 'sengiri', {
       'sengiri_shards_1'=> {
         adapter: "sqlite3",
-        database: "db/sengiri_shards_1.sqlite3",
+        database: "spec/db/sengiri_shards_1.sqlite3",
         pool: 5,
         timeout: 5000,
       },
       'sengiri_shards_second'=> {
         adapter: "sqlite3",
-        database: "db/sengiri_shards_2.sqlite3",
+        database: "spec/db/sengiri_shards_2.sqlite3",
         pool: 5,
         timeout: 5000,
       },
