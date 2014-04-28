@@ -14,7 +14,7 @@ namespace :sengiri do
 
       dbconfs = Rails.application.config.database_configuration.select {|name| /^#{shard}/ =~ name }
       switch_db_config = lambda do
-        puts "now on '#{shard}' sharding"
+        puts "now on '#{shard}' shard."
 
         shard_group_dir = "db/sengiri/#{shard}"
         ActiveRecord::Base.configurations = dbconfs

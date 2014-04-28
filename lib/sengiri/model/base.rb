@@ -63,7 +63,7 @@ module Sengiri
 
         def shard_names
           @shard_names ||= dbconfs.map do |k,v|
-            k.gsub("#{@sharding_group_name}_shards_", '')
+            k.gsub("#{@sharding_group_name}_shard_", '')
           end
           @shard_names
         end
@@ -99,7 +99,7 @@ module Sengiri
         end
 
         def establish_shard_connection(name)
-          establish_connection dbconfs["#{@sharding_group_name}_shards_#{name}"]
+          establish_connection dbconfs["#{@sharding_group_name}_shard_#{name}"]
         end
       end
     end

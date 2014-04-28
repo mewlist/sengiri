@@ -2,15 +2,15 @@ require 'spec_helper'
 
 class SengiriModel < Sengiri::Model::Base
   sharding_group 'sengiri', {
-      'sengiri_shards_1'=> {
+      'sengiri_shard_1'=> {
         adapter: "sqlite3",
-        database: "spec/db/sengiri_shards_1.sqlite3",
+        database: "spec/db/sengiri_shard_1.sqlite3",
         pool: 5,
         timeout: 5000,
       },
-      'sengiri_shards_second'=> {
+      'sengiri_shard_second'=> {
         adapter: "sqlite3",
-        database: "spec/db/sengiri_shards_2.sqlite3",
+        database: "spec/db/sengiri_shard_2.sqlite3",
         pool: 5,
         timeout: 5000,
       },
