@@ -48,8 +48,8 @@ ActiveRecord task is available on every shard.
 On a shard, ActiveRecord class is given.
 
     User.shard('second') do |shard|
-      shard.all.limit(10)   # query on db 'mygroup_1'
-      shard.find(1)         # query on db 'mygroup_1'
+      shard.all.limit(10)   # query on db 'mygroup_2'
+      shard.find(1)         # query on db 'mygroup_2'
     end
 
 Every shard.
