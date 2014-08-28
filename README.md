@@ -17,15 +17,15 @@ Flexible sharding access for Ruby on Rails with ActiveRecord
       password:
       host: localhost
     
-    mygroup_shards_first: # define shard as 'first'
+    mygroup_shard_first: # define shard as 'first'
       <<: *mysql
       database: mygroup_1
       host: hosta
-    mygroup_shards_second: # define shard as 'second'
+    mygroup_shard_second: # define shard as 'second'
       <<: *mysql
       database: mygroup_2
       host: hostb
-    mygroup_shards_third: # define shard as 'third'
+    mygroup_shard_third: # define shard as 'third'
       <<: *mysql
       database: mygroup_3
       host: hostc
