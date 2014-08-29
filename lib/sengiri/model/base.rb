@@ -17,6 +17,11 @@ module Sengiri
         self.class.instance_variable_get :@shard_name
       end
 
+      def narrowcast(association)
+        foreign_key = self.class.table_name.singularize.foreign_key
+        association.to_s.classify.constantize.shard(shard_name).where(foreign_key => id)
+      end
+
       class << self
         def shard_name         ; @shard_name          end
         def sharding_group_name; @sharding_group_name end
@@ -101,6 +106,49 @@ module Sengiri
         def establish_shard_connection(name)
           establish_connection dbconfs["#{@sharding_group_name}_shard_#{name}"]
         end
+
+        def has_many_with_sharding(name, scope = nil, options = {}, &extension)
+          require name.to_s.singularize
+          shard_classes.each do |klass|
+            new_options = options.merge({
+              class_name: name.to_s.classify + klass.shard_name,
+              foreign_key: self.to_s.foreign_key
+            })
+            klass.has_many_without_sharding(name, scope, new_options, extension) if block_given?
+            klass.has_many_without_sharding(name, scope, new_options) unless block_given?
+          end
+          has_many_without_sharding(name, scope, options, extension) if block_given?
+          has_many_without_sharding(name, scope, options) unless block_given?
+        end
+
+        def has_one_with_sharding(name, scope = nil, options = {})
+          require name.to_s
+          shard_classes.each do |klass|
+            new_options = options.merge({
+              class_name: name.to_s.classify + klass.shard_name,
+              foreign_key: self.to_s.foreign_key
+            })
+            klass.has_one_without_sharding(name, scope, new_options)
+          end
+          has_one_without_sharding(name, scope, options)
+        end
+
+        def belongs_to_with_sharding(name, scope = nil, options = {})
+          require name.to_s
+          shard_classes.each do |klass|
+            new_options = options.merge({
+              class_name: name.to_s.classify + klass.shard_name,
+              foreign_key: name.to_s.foreign_key
+            })
+            klass.belongs_to_without_sharding(name, scope, new_options)
+          end
+          belongs_to_without_sharding(name, scope, options)
+        end
+
+        alias_method_chain :has_many, :sharding
+        alias_method_chain :has_one, :sharding
+        alias_method_chain :belongs_to, :sharding
+
       end
     end
   end
