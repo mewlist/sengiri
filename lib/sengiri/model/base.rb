@@ -108,7 +108,7 @@ module Sengiri
         end
 
         def has_many_with_sharding(name, scope = nil, options = {}, &extension)
-          require name.to_s.singularize
+          constantize(name)
           shard_classes.each do |klass|
             new_options = options.merge({
               class_name: name.to_s.classify + klass.shard_name,
@@ -122,7 +122,7 @@ module Sengiri
         end
 
         def has_one_with_sharding(name, scope = nil, options = {})
-          require name.to_s
+          constantize(name)
           shard_classes.each do |klass|
             new_options = options.merge({
               class_name: name.to_s.classify + klass.shard_name,
@@ -134,7 +134,7 @@ module Sengiri
         end
 
         def belongs_to_with_sharding(name, scope = nil, options = {})
-          require name.to_s
+          constantize(name)
           shard_classes.each do |klass|
             new_options = options.merge({
               class_name: name.to_s.classify + klass.shard_name,
@@ -143,6 +143,10 @@ module Sengiri
             klass.belongs_to_without_sharding(name, scope, new_options)
           end
           belongs_to_without_sharding(name, scope, options)
+        end
+
+        def constantize(name)
+          name.to_s.singularize.classify.constantize
         end
 
         alias_method_chain :has_many, :sharding
