@@ -1,6 +1,12 @@
 require 'active_record'
 
 shard = ENV['SHARD']
+rails_env = ENV['RAILS_ENV']
+if rails_env
+  rails_env_list = [rails_env]
+else
+  rails_env_list = ['development', 'test']
+end
 
 namespace :sengiri do
   db_ns = namespace :db do
@@ -12,7 +18,13 @@ namespace :sengiri do
 
     namespace :db do
 
-      dbconfs = Rails.application.config.database_configuration.select {|name| /^#{shard}/ =~ name }
+      dbconfs = Rails.application.config.database_configuration.select {|name|
+        /^#{shard}/ =~ name
+      }.select {|name|
+        rails_env_list.select {|env|
+          /_#{env}$/ =~ name
+        }.present?
+      }
       switch_db_config = lambda do
         puts "now on '#{shard}' shard."
 
