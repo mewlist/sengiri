@@ -60,7 +60,11 @@ module Sengiri
 
         def dbconfs
           if defined? Rails
-            @dbconfs ||= Rails.application.config.database_configuration.select {|name| /^#{@sharding_group_name}/ =~ name }
+            @dbconfs ||= Rails.application.config.database_configuration.select {|name|
+              /^#{@sharding_group_name}/ =~ name
+            }.select {|name|
+              /#{rails_env}$/ =~ name
+            }
 
           end
           @dbconfs
@@ -68,7 +72,7 @@ module Sengiri
 
         def shard_names
           @shard_names ||= dbconfs.map do |k,v|
-            k.gsub("#{@sharding_group_name}_shard_", '')
+            k.gsub("#{@sharding_group_name}_shard_", '').gsub(/_#{rails_env}$/, '')
           end
           @shard_names
         end
@@ -103,8 +107,12 @@ module Sengiri
           end
         end
 
+        def rails_env
+          ENV["RAILS_ENV"] || 'development'
+        end
+
         def establish_shard_connection(name)
-          establish_connection dbconfs["#{@sharding_group_name}_shard_#{name}"]
+          establish_connection dbconfs["#{@sharding_group_name}_shard_#{name}_#{rails_env}"]
         end
 
         def has_many_with_sharding(name, scope = nil, options = {}, &extension)

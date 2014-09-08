@@ -1,14 +1,16 @@
 require 'spec_helper'
 
+ENV['RAILS_ENV'] = 'rails_env'
+
 class SengiriModel < Sengiri::Model::Base
   sharding_group 'sengiri', {
-      'sengiri_shard_1'=> {
+      'sengiri_shard_1_rails_env'=> {
         adapter: "sqlite3",
         database: "spec/db/sengiri_shard_1.sqlite3",
         pool: 5,
         timeout: 5000,
       },
-      'sengiri_shard_second'=> {
+      'sengiri_shard_second_rails_env'=> {
         adapter: "sqlite3",
         database: "spec/db/sengiri_shard_2.sqlite3",
         pool: 5,
