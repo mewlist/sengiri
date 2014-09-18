@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-ENV['RAILS_ENV'] = 'rails_env'
+ENV['SENGIRI_ENV'] = 'rails_env'
 
 class SengiriModel < Sengiri::Model::Base
   sharding_group 'sengiri', confs: {

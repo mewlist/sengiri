@@ -66,7 +66,7 @@ module Sengiri
             @dbconfs ||= Rails.application.config.database_configuration.select {|name|
               /^#{@sharding_group_name}/ =~ name
             }.select {|name|
-              /#{rails_env}#{@sharding_database_suffix}$/ =~ name
+              /#{env}#{@sharding_database_suffix}$/ =~ name
             }
 
           end
@@ -75,7 +75,7 @@ module Sengiri
 
         def shard_names
           @shard_names ||= dbconfs.map do |k,v|
-            k.gsub("#{@sharding_group_name}_shard_", '').gsub(/_#{rails_env}#{@sharding_database_suffix}$/, '')
+            k.gsub("#{@sharding_group_name}_shard_", '').gsub(/_#{env}#{@sharding_database_suffix}$/, '')
           end
           @shard_names
         end
@@ -110,12 +110,12 @@ module Sengiri
           end
         end
 
-        def rails_env
-          ENV["RAILS_ENV"] || 'development'
+        def env
+          ENV["SENGIRI_ENV"] ||= ENV["RAILS_ENV"] || 'development'
         end
 
         def establish_shard_connection(name)
-          establish_connection dbconfs["#{@sharding_group_name}_shard_#{name}_#{rails_env}#{@sharding_database_suffix}"]
+          establish_connection dbconfs["#{@sharding_group_name}_shard_#{name}_#{env}#{@sharding_database_suffix}"]
         end
 
         def has_many_with_sharding(name, scope = nil, options = {}, &extension)
