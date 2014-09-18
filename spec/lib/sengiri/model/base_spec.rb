@@ -99,4 +99,14 @@ describe SengiriModel do
       end
     end
   end
+
+  context 'has no databases' do
+    it 'should raise an error' do
+      expect {
+        class SengiriModelWithoutDatabases < Sengiri::Model::Base
+          sharding_group 'sengiri', confs: {}
+        end
+      }.to raise_error
+    end
+  end
 end

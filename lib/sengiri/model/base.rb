@@ -37,6 +37,7 @@ module Sengiri
           @shard_class_hash = {}
           @sharding_database_suffix = if suffix.present? then "_#{suffix}" else nil end
           first = true
+          raise "Databases are not found" if shard_names.blank?
           shard_names.each do |s|
             klass = Class.new(self)
             Object.const_set self.name + s, klass
