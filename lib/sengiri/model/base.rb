@@ -31,10 +31,11 @@ module Sengiri
           []
         end
 
-        def sharding_group(name, confs=nil)
+        def sharding_group(name, confs: nil, suffix: nil)
           @dbconfs = confs if confs
           @sharding_group_name = name
           @shard_class_hash = {}
+          @sharding_database_suffix = if suffix.present? then "_#{suffix}" else nil end
           first = true
           shard_names.each do |s|
             klass = Class.new(self)
@@ -42,6 +43,8 @@ module Sengiri
             klass.instance_variable_set :@shard_name, s
             klass.instance_variable_set :@dbconfs,    dbconfs
             klass.instance_variable_set :@sharding_group_name, name
+            klass.instance_variable_set :@sharding_database_suffix, @sharding_database_suffix
+
             #
             # first shard shares connection with base class
             #
@@ -63,7 +66,7 @@ module Sengiri
             @dbconfs ||= Rails.application.config.database_configuration.select {|name|
               /^#{@sharding_group_name}/ =~ name
             }.select {|name|
-              /#{rails_env}$/ =~ name
+              /#{rails_env}#{@sharding_database_suffix}$/ =~ name
             }
 
           end
@@ -72,7 +75,7 @@ module Sengiri
 
         def shard_names
           @shard_names ||= dbconfs.map do |k,v|
-            k.gsub("#{@sharding_group_name}_shard_", '').gsub(/_#{rails_env}$/, '')
+            k.gsub("#{@sharding_group_name}_shard_", '').gsub(/_#{rails_env}#{@sharding_database_suffix}$/, '')
           end
           @shard_names
         end
@@ -112,7 +115,7 @@ module Sengiri
         end
 
         def establish_shard_connection(name)
-          establish_connection dbconfs["#{@sharding_group_name}_shard_#{name}_#{rails_env}"]
+          establish_connection dbconfs["#{@sharding_group_name}_shard_#{name}_#{rails_env}#{@sharding_database_suffix}"]
         end
 
         def has_many_with_sharding(name, scope = nil, options = {}, &extension)
