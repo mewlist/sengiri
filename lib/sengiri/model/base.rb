@@ -40,7 +40,9 @@ module Sengiri
           raise "Databases are not found" if shard_names.blank?
           shard_names.each do |s|
             klass = Class.new(self)
-            Object.const_set self.name + s, klass
+            module_name = self.name.deconstantize
+            module_name = "Object" if module_name.blank?
+            module_name.constantize.const_set self.name.demodulize + s, klass
             klass.instance_variable_set :@shard_name, s
             klass.instance_variable_set :@dbconfs,    dbconfs
             klass.instance_variable_set :@sharding_group_name, name
