@@ -109,4 +109,38 @@ describe SengiriModel do
       }.to raise_error
     end
   end
+
+  context 'is included in module' do
+    let(:sengiri_model) {
+      module SengiriModule
+        class SengiriModel < Sengiri::Model::Base
+          sharding_group 'sengiri', confs: {
+              'sengiri_shard_1_rails_env'=> {
+                adapter: "sqlite3",
+                database: "spec/db/sengiri_shard_1.sqlite3",
+                pool: 5,
+                timeout: 5000,
+              },
+              'sengiri_shard_second_rails_env'=> {
+                adapter: "sqlite3",
+                database: "spec/db/sengiri_shard_2.sqlite3",
+                pool: 5,
+                timeout: 5000,
+              },
+            }
+        end
+      end
+    }
+    it 'should be normal' do
+      expect { sengiri_model }.not_to raise_error
+    end
+    context 'when sengiri_model is evaluated' do
+      before do
+        sengiri_model
+      end
+      it 'should create a new shard class in the module' do
+        expect { SengiriModule::SengiriModel1 }.not_to raise_error
+      end
+    end
+  end
 end
