@@ -122,10 +122,10 @@ module Sengiri
         end
 
         def has_many_with_sharding(name, scope = nil, options = {}, &extension)
-          constantize(name)
+          class_name, scope, options = *prepare_association(name, scope, options)
           shard_classes.each do |klass|
             new_options = options.merge({
-              class_name: name.to_s.classify + klass.shard_name,
+              class_name: class_name.to_s.classify + klass.shard_name,
               foreign_key: self.to_s.foreign_key
             })
             klass.has_many_without_sharding(name, scope, new_options, extension) if block_given?
@@ -136,10 +136,10 @@ module Sengiri
         end
 
         def has_one_with_sharding(name, scope = nil, options = {})
-          constantize(name)
+          class_name, scope, options = *prepare_association(name, scope, options)
           shard_classes.each do |klass|
             new_options = options.merge({
-              class_name: name.to_s.classify + klass.shard_name,
+              class_name: class_name.to_s.classify + klass.shard_name,
               foreign_key: self.to_s.foreign_key
             })
             klass.has_one_without_sharding(name, scope, new_options)
@@ -148,10 +148,10 @@ module Sengiri
         end
 
         def belongs_to_with_sharding(name, scope = nil, options = {})
-          constantize(name)
+          class_name, scope, options = *prepare_association(name, scope, options)
           shard_classes.each do |klass|
             new_options = options.merge({
-              class_name: name.to_s.classify + klass.shard_name,
+              class_name: class_name.to_s.classify + klass.shard_name,
               foreign_key: name.to_s.foreign_key
             })
             klass.belongs_to_without_sharding(name, scope, new_options)
@@ -161,6 +161,16 @@ module Sengiri
 
         def constantize(name)
           name.to_s.singularize.classify.constantize
+        end
+
+        def prepare_association(name, scope, options)
+          if scope.is_a?(Hash)
+            options = scope
+            scope   = nil
+          end
+          class_name = options[:class_name] || name
+          constantize(class_name)
+          [class_name, scope, options]
         end
 
         alias_method_chain :has_many, :sharding
