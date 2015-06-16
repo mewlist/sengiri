@@ -126,7 +126,7 @@ module Sengiri
           shard_classes.each do |klass|
             new_options = options.merge({
               class_name: class_name.to_s.classify + klass.shard_name,
-              foreign_key: self.to_s.foreign_key
+              foreign_key: options[:foreign_key] || self.to_s.foreign_key
             })
             klass.has_many_without_sharding(name, scope, new_options, extension) if block_given?
             klass.has_many_without_sharding(name, scope, new_options) unless block_given?
@@ -140,7 +140,7 @@ module Sengiri
           shard_classes.each do |klass|
             new_options = options.merge({
               class_name: class_name.to_s.classify + klass.shard_name,
-              foreign_key: self.to_s.foreign_key
+              foreign_key: options[:foreign_key] || self.to_s.foreign_key
             })
             klass.has_one_without_sharding(name, scope, new_options)
           end
@@ -152,7 +152,7 @@ module Sengiri
           shard_classes.each do |klass|
             new_options = options.merge({
               class_name: class_name.to_s.classify + klass.shard_name,
-              foreign_key: name.to_s.foreign_key
+              foreign_key: options[:foreign_key] || name.to_s.foreign_key
             })
             klass.belongs_to_without_sharding(name, scope, new_options)
           end
