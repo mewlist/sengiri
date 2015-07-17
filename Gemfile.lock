@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    sengiri (0.0.2)
+    sengiri (0.1.0)
       rails (~> 4.2.1)
 
 GEM
