@@ -51,17 +51,28 @@ module Sengiri
             #
             # first shard shares connection with base class
             #
-            if first
-              establish_shard_connection s
-            else
-              klass.establish_shard_connection s
-            end
+            connection_establisher_class = get_or_define_connection_establisher_class(s)
+            klass.instance_variable_set :@connection_establisher_class, connection_establisher_class
+            @connection_establisher_class = connection_establisher_class if first
             first = false
+
             if defined? Ardisconnector::Middleware
               Ardisconnector::Middleware.models << klass
             end
             @shard_class_hash[s] = klass
           end
+        end
+
+        def get_or_define_connection_establisher_class(shard_name)
+          module_name = self.name.deconstantize
+          module_name = "Object" if module_name.blank?
+          klass_name = "#{@sharding_group_name.to_s.classify}#{shard_name.to_s.classify}#{@sharding_database_suffix.to_s.classify}ConnectionEstablisher"
+          unless module_name.constantize.const_defined?(klass_name)
+            klass = Class.new(ActiveRecord::Base)
+            module_name.constantize.const_set(klass_name, klass)
+            klass.establish_connection(dbconf(shard_name))
+          end
+          module_name.constantize.const_get(klass_name)
         end
 
         def dbconfs
@@ -74,6 +85,10 @@ module Sengiri
 
           end
           @dbconfs
+        end
+
+        def dbconf(shard_name)
+          dbconfs["#{@sharding_group_name}_shard_#{shard_name}_#{env}#{@sharding_database_suffix}"]
         end
 
         def shard_names
@@ -115,10 +130,6 @@ module Sengiri
 
         def env
           ENV["SENGIRI_ENV"] ||= ENV["RAILS_ENV"] || 'development'
-        end
-
-        def establish_shard_connection(name)
-          establish_connection dbconfs["#{@sharding_group_name}_shard_#{name}_#{env}#{@sharding_database_suffix}"]
         end
 
         def has_many_with_sharding(name, scope = nil, options = {}, &extension)
@@ -173,9 +184,14 @@ module Sengiri
           [class_name, scope, options]
         end
 
+        def retrieve_connection_with_sharding
+          @connection_establisher_class.retrieve_connection
+        end
+
         alias_method_chain :has_many, :sharding
         alias_method_chain :has_one, :sharding
         alias_method_chain :belongs_to, :sharding
+        alias_method_chain :retrieve_connection, :sharding
 
       end
     end

@@ -143,4 +143,33 @@ describe SengiriModel do
       end
     end
   end
+
+  context 'when the other model with the same DB confs exists' do
+    before do
+      class SengiriModelWithSameDBConfs < Sengiri::Model::Base
+        sharding_group 'sengiri', confs: {
+            'sengiri_shard_1_rails_env'=> {
+              adapter: "sqlite3",
+              database: "spec/db/sengiri_shard_1.sqlite3",
+              pool: 5,
+              timeout: 5000,
+            },
+            'sengiri_shard_second_rails_env'=> {
+              adapter: "sqlite3",
+              database: "spec/db/sengiri_shard_2.sqlite3",
+              pool: 5,
+              timeout: 5000,
+            },
+          }
+      end
+    end
+
+    it 'should use the same connections' do
+      aggregate_failures 'testing connections' do
+        expect(SengiriModel.connection).to be SengiriModelWithSameDBConfs.connection
+        expect(SengiriModel.shard('1').connection).to be SengiriModelWithSameDBConfs.shard('1').connection
+        expect(SengiriModel.shard('second').connection).to be SengiriModelWithSameDBConfs.shard('second').connection
+      end
+    end
+  end
 end
