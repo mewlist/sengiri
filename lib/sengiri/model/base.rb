@@ -132,7 +132,15 @@ module Sengiri
           ENV["SENGIRI_ENV"] ||= ENV["RAILS_ENV"] || 'development'
         end
 
-        def has_many_with_sharding(name, scope = nil, options = {}, &extension)
+        def retrieve_connection
+          @connection_establisher_class.retrieve_connection
+        end
+
+        alias_method :has_many_without_sharding, :has_many
+        alias_method :has_one_without_sharding, :has_one
+        alias_method :belongs_to_without_sharding, :belongs_to
+
+        def has_many(name, scope = nil, options = {}, &extension)
           class_name, scope, options = *prepare_association(name, scope, options)
           shard_classes.each do |klass|
             new_options = options.merge({
@@ -146,7 +154,7 @@ module Sengiri
           has_many_without_sharding(name, scope, options) unless block_given?
         end
 
-        def has_one_with_sharding(name, scope = nil, options = {})
+        def has_one(name, scope = nil, options = {})
           class_name, scope, options = *prepare_association(name, scope, options)
           shard_classes.each do |klass|
             new_options = options.merge({
@@ -158,7 +166,7 @@ module Sengiri
           has_one_without_sharding(name, scope, options)
         end
 
-        def belongs_to_with_sharding(name, scope = nil, options = {})
+        def belongs_to(name, scope = nil, options = {})
           class_name, scope, options = *prepare_association(name, scope, options)
           shard_classes.each do |klass|
             new_options = options.merge({
@@ -183,16 +191,6 @@ module Sengiri
           constantize(class_name)
           [class_name, scope, options]
         end
-
-        def retrieve_connection_with_sharding
-          @connection_establisher_class.retrieve_connection
-        end
-
-        alias_method_chain :has_many, :sharding
-        alias_method_chain :has_one, :sharding
-        alias_method_chain :belongs_to, :sharding
-        alias_method_chain :retrieve_connection, :sharding
-
       end
     end
   end
