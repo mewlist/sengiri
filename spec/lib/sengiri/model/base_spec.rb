@@ -106,7 +106,7 @@ describe SengiriModel do
         class SengiriModelWithoutDatabases < Sengiri::Model::Base
           sharding_group 'sengiri', confs: {}
         end
-      }.to raise_error
+      }.to raise_error RuntimeError
     end
   end
 
