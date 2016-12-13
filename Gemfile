@@ -2,4 +2,4 @@ source "https://rubygems.org"
 
 gemspec
 
-gem 'rails', '~> 4.2.1'
+gem 'rails', '~> 5.0.0'
