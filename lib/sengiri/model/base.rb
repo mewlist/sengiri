@@ -4,11 +4,6 @@ module Sengiri
       self.abstract_class = true
       attr_reader :current_shard
 
-      def initialize(*)
-        @shard_name = self.class.shard_name
-        super
-      end
-
       def sharding_group_name
         self.class.instance_variable_get :@sharding_group_name
       end
