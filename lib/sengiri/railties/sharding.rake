@@ -66,7 +66,7 @@ namespace :sengiri do
 
       desc "drop on '#{shard}' databases"
       task :drop => [:environment, :load_config] do
-        execute_with_dbtask_env.call :drop
+        execute_with_dbtask_env.call 'drop:_unsafe' # Avoid db:check_protected_environments.
       end
 
       desc "migrate on '#{shard}' databases"
