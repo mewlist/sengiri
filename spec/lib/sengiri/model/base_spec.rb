@@ -88,15 +88,16 @@ describe SengiriModel do
     end
 
     it 'starts transactions' do
-      begin
-        SengiriModel.transaction do
-          first.create(name: 'first')
-          second.create(name: 'first_2')
-          raise # to rollback
+      expect {
+        begin
+          SengiriModel.transaction do
+            first.create(name: 'first')
+            second.create(name: 'first_2')
+            raise # to rollback
+          end
+        rescue
         end
-      rescue
-        expect( SengiriModel.all.broadcast.count ).to eq 0
-      end
+      }.to_not change { SengiriModel.all.broadcast.count }
     end
   end
 

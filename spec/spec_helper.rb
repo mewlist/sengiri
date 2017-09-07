@@ -4,6 +4,7 @@ require File.expand_path('../../lib/sengiri', __FILE__)
 require File.expand_path('../../lib/sengiri/model/base', __FILE__)
 
 require "sqlite3"
+require 'pry-byebug'
 
 def setup_test_database(path)
   # Open a database
