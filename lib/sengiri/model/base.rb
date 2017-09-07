@@ -18,38 +18,39 @@ module Sengiri
       end
 
       class << self
-        def shard_name         ; @shard_name          end
-        def sharding_group_name; @sharding_group_name end
+        attr_reader :shard_name, :sharding_group_name
 
         def shard_classes
           return @shard_class_hash.values if @shard_class_hash
           []
         end
 
-        def sharding_group(name, confs: nil, suffix: nil)
-          @dbconfs = confs if confs
-          @sharding_group_name = name
+        def sharding_group(group_name, confs: nil, suffix: nil)
+          @dbconfs = confs
+          @sharding_group_name = group_name
           @shard_class_hash = {}
-          @sharding_database_suffix = if suffix.present? then "_#{suffix}" else nil end
-          first = true
+          @sharding_database_suffix = suffix.presence && "_#{suffix}"
+
           raise "Databases are not found" if shard_names.blank?
+
+          @sharding_base = true
+          @shard_name = shard_names.first
+          establish_shard_connection
+
           shard_names.each do |s|
             klass = Class.new(self)
             module_name = self.name.deconstantize
             module_name = "Object" if module_name.blank?
             module_name.constantize.const_set self.name.demodulize + s, klass
+
             klass.instance_variable_set :@shard_name, s
             klass.instance_variable_set :@dbconfs,    dbconfs
-            klass.instance_variable_set :@sharding_group_name, name
+            klass.instance_variable_set :@sharding_group_name, group_name
             klass.instance_variable_set :@sharding_database_suffix, @sharding_database_suffix
 
-            #
-            # first shard shares connection with base class
-            #
-            connection_establisher_class = get_or_define_connection_establisher_class(s)
-            klass.instance_variable_set :@connection_establisher_class, connection_establisher_class
-            @connection_establisher_class = connection_establisher_class if first
-            first = false
+            if klass.connection_specification_name != connection_specification_name
+              klass.establish_shard_connection
+            end
 
             if defined? Ardisconnector::Middleware
               Ardisconnector::Middleware.models << klass
@@ -58,16 +59,12 @@ module Sengiri
           end
         end
 
-        def get_or_define_connection_establisher_class(shard_name)
-          module_name = self.name.deconstantize
-          module_name = "Object" if module_name.blank?
-          klass_name = "#{@sharding_group_name.to_s.classify}#{shard_name.to_s.classify}#{@sharding_database_suffix.to_s.classify}ConnectionEstablisher"
-          unless module_name.constantize.const_defined?(klass_name)
-            klass = Class.new(ActiveRecord::Base)
-            module_name.constantize.const_set(klass_name, klass)
-            klass.establish_connection(dbconf(shard_name))
-          end
-          module_name.constantize.const_get(klass_name)
+        def connection_specification_name
+          "#{@sharding_group_name}_shard_#{@shard_name}"
+        end
+
+        def dbconf
+          dbconfs["#{connection_specification_name}_#{env}#{@sharding_database_suffix}"]
         end
 
         def dbconfs
@@ -82,15 +79,22 @@ module Sengiri
           @dbconfs
         end
 
-        def dbconf(shard_name)
-          dbconfs["#{@sharding_group_name}_shard_#{shard_name}_#{env}#{@sharding_database_suffix}"]
-        end
-
         def shard_names
           @shard_names ||= dbconfs.map do |k,v|
             k.gsub("#{@sharding_group_name}_shard_", '').gsub(/_#{env}#{@sharding_database_suffix}$/, '')
           end
-          @shard_names
+        end
+
+        def establish_shard_connection
+          resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new configurations
+          spec = resolver.spec(dbconf, connection_specification_name)
+
+          unless respond_to?(spec.adapter_method)
+            raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
+          end
+
+          remove_connection(spec.name)
+          connection_handler.establish_connection spec
         end
 
         def shard(name)
@@ -109,7 +113,7 @@ module Sengiri
         end
 
         def transaction(klasses=shard_classes, &block)
-          if shard_name
+          if @sharding_base.nil?
             super &block
           else
             if klasses.length > 0
@@ -125,10 +129,6 @@ module Sengiri
 
         def env
           ENV["SENGIRI_ENV"] ||= ENV["RAILS_ENV"] || 'development'
-        end
-
-        def retrieve_connection
-          @connection_establisher_class.retrieve_connection
         end
 
         alias_method :has_many_without_sharding, :has_many
