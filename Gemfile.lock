@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     sengiri (0.1.0)
-      rails (~> 5.0)
+      rails (~> 5.1)
 
 GEM
   remote: https://rubygems.org/
