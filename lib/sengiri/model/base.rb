@@ -86,15 +86,11 @@ module Sengiri
         end
 
         def establish_shard_connection
-          resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new configurations
-          spec = resolver.spec(dbconf, connection_specification_name)
+          resolver = ActiveRecord::ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations)
+          spec = resolver.resolve(dbconf).symbolize_keys
+          spec[:name] = connection_specification_name
 
-          unless respond_to?(spec.adapter_method)
-            raise AdapterNotFound, "database configuration specifies nonexistent #{spec.config[:adapter]} adapter"
-          end
-
-          remove_connection(spec.name)
-          connection_handler.establish_connection spec
+          connection_handler.establish_connection(spec)
         end
 
         def shard(name)
