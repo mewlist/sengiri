@@ -49,7 +49,7 @@ module Sengiri
       if @scope
         shard_class.merge(@scope)
       else
-        shard_class
+        shard_class.all
       end
     end
   end
