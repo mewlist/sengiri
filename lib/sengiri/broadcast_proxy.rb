@@ -20,6 +20,10 @@ module Sengiri
       parallel(&:to_a).flatten
     end
 
+    def size
+      to_a.size
+    end
+
     def find_by(query)
       records = parallel { |relation|
         relation.find_by(query)
@@ -49,7 +53,7 @@ module Sengiri
       if @scope
         shard_class.merge(@scope)
       else
-        shard_class
+        shard_class.all
       end
     end
   end
