@@ -45,7 +45,7 @@ module Sengiri
     end
 
     def exists?
-      parallel(&:exists?).any? { |exists| exists }
+      execute(&:exists?).any? { |exists| exists }
     end
 
     private
