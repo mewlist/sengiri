@@ -50,6 +50,28 @@ describe Sengiri::BroadcastProxy do
     end
   end
 
+  describe '#exists' do
+    subject do
+      SengiriModel.where(query).broadcast.exists
+    end
+
+    context 'when found in any shards' do
+      let(:query) do
+        { name: 'moge' }
+      end
+
+      it { should be_truthy }
+    end
+
+    context 'not found' do
+      let(:query) do
+        { name: '@@@@@' }
+      end
+
+      it { should be_falsey }
+    end
+  end
+
   describe 'inherit current scope' do
     subject do
       SengiriModel.where(name: ['hoge', 'fuga']).broadcast
