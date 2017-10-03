@@ -123,8 +123,8 @@ module Sengiri
           end
         end
 
-        def broadcast(max_threads=5)
-          Sengiri::BroadcastProxy.new(shard_classes, scope: current_scope, max_threads: max_threads)
+        def broadcast
+          Sengiri::BroadcastProxy.new(shard_classes, scope: current_scope)
         end
 
         def env
