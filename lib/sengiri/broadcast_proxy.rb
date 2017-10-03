@@ -39,6 +39,10 @@ module Sengiri
       result
     end
 
+    def exists?
+      parallel(&:exists?).any? { |exists| exists }
+    end
+
     private
 
     def parallel
