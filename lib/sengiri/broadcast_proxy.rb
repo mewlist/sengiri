@@ -39,7 +39,7 @@ module Sengiri
       result
     end
 
-    def exists
+    def exists?
       parallel(&:exists?).any? { |exists| exists }
     end
 

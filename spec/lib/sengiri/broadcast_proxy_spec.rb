@@ -50,9 +50,9 @@ describe Sengiri::BroadcastProxy do
     end
   end
 
-  describe '#exists' do
+  describe '#exists?' do
     subject do
-      SengiriModel.where(query).broadcast.exists
+      SengiriModel.where(query).broadcast.exists?
     end
 
     context 'when found in any shards' do
