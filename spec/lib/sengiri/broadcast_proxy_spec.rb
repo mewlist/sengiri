@@ -43,9 +43,7 @@ describe Sengiri::BroadcastProxy do
       end
 
       it 'should raise error' do
-        expect {
-          subject
-        }.to raise_error(ActiveRecord::RecordNotFound)
+        expect { subject }.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
   end

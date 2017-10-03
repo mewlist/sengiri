@@ -2,10 +2,15 @@ module Sengiri
   class BroadcastProxy
     include Enumerable
 
-    def initialize(shard_classes, scope: nil, max_threads: )
+    def self.thread_pool
+      @pool ||= Concurrent::ThreadPoolExecutor.new(
+        min_threads: [4, Concurrent.processor_count].max,
+        max_threads: [4, Concurrent.processor_count].max)
+    end
+
+    def initialize(shard_classes, scope: nil)
       @shard_classes = shard_classes
       @scope = scope
-      @max_threads = max_threads
     end
 
     def each(&block)
@@ -17,7 +22,7 @@ module Sengiri
     end
 
     def to_a
-      parallel(&:to_a).flatten
+      execute(&:to_a).flatten
     end
 
     def size
@@ -25,7 +30,7 @@ module Sengiri
     end
 
     def find_by(query)
-      records = parallel { |relation|
+      records = execute { |relation|
         relation.find_by(query)
       }
       records.detect { |record| record }
@@ -45,11 +50,16 @@ module Sengiri
 
     private
 
-    def parallel
-      Parallel.map(@shard_classes, in_threads: @max_threads){ |shard_class|
-        shard_class.connection_pool.with_connection do
-          yield scoped(shard_class)
+    def execute
+      @shard_classes.map { |shard_class|
+        Concurrent::Future.execute do
+          shard_class.connection_pool.with_connection do
+            yield(scoped(shard_class))
+          end
         end
+      }.each_with_object([]) { |future, values|
+        values << future.value
+        raise future.reason if future.rejected?
       }
     end
 
