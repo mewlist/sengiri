@@ -4,19 +4,6 @@ module Sengiri
       self.abstract_class = true
       attr_reader :current_shard
 
-      def sharding_group_name
-        self.class.instance_variable_get :@sharding_group_name
-      end
-
-      def shard_name
-        self.class.instance_variable_get :@shard_name
-      end
-
-      def narrowcast(association)
-        foreign_key = self.class.table_name.singularize.foreign_key
-        association.to_s.classify.constantize.shard(shard_name).where(foreign_key => id)
-      end
-
       class << self
         attr_reader :shard_name, :sharding_group_name
 
@@ -131,61 +118,24 @@ module Sengiri
           ENV["SENGIRI_ENV"] ||= ENV["RAILS_ENV"] || 'development'
         end
 
-        alias_method :has_many_without_sharding, :has_many
-        alias_method :has_one_without_sharding, :has_one
-        alias_method :belongs_to_without_sharding, :belongs_to
+        protected
 
-        def has_many(name, scope = nil, options = {}, &extension)
-          class_name, scope, options = *prepare_association(name, scope, options)
-          shard_classes.each do |klass|
-            new_options = options.merge({
-              class_name: class_name.to_s.classify + klass.shard_name,
-              foreign_key: options[:foreign_key] || self.to_s.foreign_key
-            })
-            klass.has_many_without_sharding(name, scope, new_options, extension) if block_given?
-            klass.has_many_without_sharding(name, scope, new_options) unless block_given?
-          end
-          has_many_without_sharding(name, scope, options, extension) if block_given?
-          has_many_without_sharding(name, scope, options) unless block_given?
+        def compute_type(name)
+          super "#{name}#{shard_name}"
         end
+      end
 
-        def has_one(name, scope = nil, options = {})
-          class_name, scope, options = *prepare_association(name, scope, options)
-          shard_classes.each do |klass|
-            new_options = options.merge({
-              class_name: class_name.to_s.classify + klass.shard_name,
-              foreign_key: options[:foreign_key] || self.to_s.foreign_key
-            })
-            klass.has_one_without_sharding(name, scope, new_options)
-          end
-          has_one_without_sharding(name, scope, options)
-        end
+      def sharding_group_name
+        self.class.instance_variable_get :@sharding_group_name
+      end
 
-        def belongs_to(name, scope = nil, options = {})
-          class_name, scope, options = *prepare_association(name, scope, options)
-          shard_classes.each do |klass|
-            new_options = options.merge({
-              class_name: class_name.to_s.classify + klass.shard_name,
-              foreign_key: options[:foreign_key] || name.to_s.foreign_key
-            })
-            klass.belongs_to_without_sharding(name, scope, new_options)
-          end
-          belongs_to_without_sharding(name, scope, options)
-        end
+      def shard_name
+        self.class.instance_variable_get :@shard_name
+      end
 
-        def constantize(name)
-          name.to_s.singularize.classify.constantize
-        end
-
-        def prepare_association(name, scope, options)
-          if scope.is_a?(Hash)
-            options = scope
-            scope   = nil
-          end
-          class_name = options[:class_name] || name
-          constantize(class_name)
-          [class_name, scope, options]
-        end
+      def narrowcast(association)
+        foreign_key = self.class.table_name.singularize.foreign_key
+        association.to_s.classify.constantize.shard(shard_name).where(foreign_key => id)
       end
     end
   end
