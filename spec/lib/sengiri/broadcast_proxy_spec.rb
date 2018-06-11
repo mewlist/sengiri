@@ -84,21 +84,21 @@ describe Sengiri::BroadcastProxy do
 
     describe 'includes' do
       subject do
-        SengiriModel.includes(:hoge).broadcast
+        SengiriModel.includes(:hoge, :fuga).broadcast
       end
 
       it 'should merge query' do
-        expect(subject.scope.includes_values).to eq([:hoge])
+        expect(subject.scope.includes_values).to eq([:hoge, :fuga])
       end
     end
 
     describe 'preload' do
       subject do
-        SengiriModel.includes(:hoge).broadcast
+        SengiriModel.preload(:hoge, :fuga).broadcast
       end
 
       it 'should merge query' do
-        expect(subject.scope.includes_values).to eq([:hoge])
+        expect(subject.scope.preload_values).to eq([:hoge, :fuga])
       end
     end
   end
