@@ -71,13 +71,35 @@ describe Sengiri::BroadcastProxy do
   end
 
   describe 'inherit current scope' do
-    subject do
-      SengiriModel.where(name: ['hoge', 'fuga']).broadcast
+    describe 'where' do
+      subject do
+        SengiriModel.where(name: ['hoge', 'fuga']).broadcast
+      end
+
+      it 'should merge query' do
+        expect(subject.find_by(name: 'hoge')).to be_present
+        expect(subject.find_by(name: 'hugo')).to be_nil
+      end
     end
 
-    it 'should merge query' do
-      expect(subject.find_by(name: 'hoge')).to be_present
-      expect(subject.find_by(name: 'hugo')).to be_nil
+    describe 'includes' do
+      subject do
+        SengiriModel.includes(:hoge).broadcast
+      end
+
+      it 'should merge query' do
+        expect(subject.scope.includes_values).to eq([:hoge])
+      end
+    end
+
+    describe 'preload' do
+      subject do
+        SengiriModel.includes(:hoge).broadcast
+      end
+
+      it 'should merge query' do
+        expect(subject.scope.includes_values).to eq([:hoge])
+      end
     end
   end
 end

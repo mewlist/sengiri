@@ -2,6 +2,8 @@ module Sengiri
   class BroadcastProxy
     include Enumerable
 
+    attr_reader :scope
+
     def self.thread_pool
       @pool ||= Concurrent::ThreadPoolExecutor.new(
         min_threads: [4, Concurrent.processor_count].max,
@@ -65,7 +67,14 @@ module Sengiri
 
     def scoped(shard_class)
       if @scope
-        shard_class.merge(@scope)
+        scope = shard_class.merge(@scope)
+        if @scope.includes_values.any?
+          scope.includes!(@scope.includes_values)
+        end
+        if @scope.preload_values.any?
+          scope.preload!(@scope.preload_values)
+        end
+        scope
       else
         shard_class.all
       end
