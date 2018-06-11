@@ -72,7 +72,7 @@ module Sengiri
           scope.includes!(@scope.includes_values)
         end
         if @scope.preload_values.any?
-          scope.preload!(@scope.preload_values)
+          scope.preload!(*@scope.preload_values)
         end
         scope
       else
