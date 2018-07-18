@@ -60,11 +60,11 @@ module Sengiri
         end
 
         def connection_specification_name
-          "#{@sharding_group_name}_shard_#{@shard_name}"
+          "#{@sharding_group_name}_shard_#{@shard_name}#{@sharding_database_suffix}"
         end
 
         def dbconf
-          dbconfs["#{connection_specification_name}_#{env}#{@sharding_database_suffix}"]
+          dbconfs["#{@sharding_group_name}_shard_#{@shard_name}_#{env}#{@sharding_database_suffix}"]
         end
 
         def dbconfs
