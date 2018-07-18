@@ -25,7 +25,7 @@ describe SengiriModel do
 
   end
 
-  context 'Sparated database access' do
+  context 'separated database access' do
     let(:first)  { SengiriModel.shard(1) }
     let(:second) { SengiriModel.shard('second') }
 
@@ -133,6 +133,12 @@ describe SengiriModel do
         expect(SengiriModel.shard('1').connection).to be SengiriModelWithSameDBConfs.shard('1').connection
         expect(SengiriModel.shard('second').connection).to be SengiriModelWithSameDBConfs.shard('second').connection
       end
+    end
+  end
+
+  context 'when inheriting' do
+    it 'should be held individually connection' do
+      expect(SengiriModel.connection).to_not be(SengiriModelSubclass.connection)
     end
   end
 end
