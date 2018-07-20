@@ -39,6 +39,12 @@ Flexible sharding access for Ruby on Rails with ActiveRecord
 
 ## Sharding migration
 
+Generator
+
+```
+    rails g sengiri:migration mygroup create_user
+```
+
 ActiveRecord task is available on every shard.
 
 ```ruby
