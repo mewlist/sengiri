@@ -57,6 +57,11 @@ module Sengiri
         Concurrent::Future.execute do
           shard_class.connection_pool.with_connection do
             yield(scoped(shard_class))
+          ensure
+            ActiveRecord::Base.connection_handler.connection_pool_list.each {|r|
+              next unless r.connected?
+              r.connections.select {|c| c.owner == Thread.current }.each {|c| r.checkin(c) }
+            }
           end
         end
       }.each_with_object([]) { |future, values|
