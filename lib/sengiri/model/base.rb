@@ -33,7 +33,7 @@ module Sengiri
 
           raise "Databases are not found" if shard_names.blank?
 
-          @sharding_base = true
+          @sharding_base = true unless shard_names.length == 1
           @shard_name = shard_names.first
           establish_shard_connection
 
