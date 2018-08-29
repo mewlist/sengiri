@@ -136,7 +136,7 @@ describe SengiriModel do
     end
   end
 
-  context 'when inheriting' do
+  context 'when inheriting and same sharding group name' do
     it 'should be held individually connection' do
       expect(SengiriModel.connection).to_not be(SengiriModelSubclass.connection)
     end

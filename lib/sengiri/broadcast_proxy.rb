@@ -5,9 +5,12 @@ module Sengiri
     attr_reader :scope
 
     def self.thread_pool
-      @pool ||= Concurrent::ThreadPoolExecutor.new(
-        min_threads: [4, Concurrent.processor_count].max,
-        max_threads: [4, Concurrent.processor_count].max)
+      @pool ||=
+        begin
+          min_threads = [ENV.fetch("SENGIRI_MIN_THREADS", 4), Concurrent.processor_count].max
+          max_threads = [ENV.fetch("SENGIRI_MAX_THREADS", 4), Concurrent.processor_count, min_threads].max
+          Concurrent::ThreadPoolExecutor.new(min_threads: min_threads, max_threads: max_threads)
+        end
     end
 
     def initialize(shard_classes, scope: nil)
@@ -54,7 +57,7 @@ module Sengiri
 
     def execute
       @shard_classes.map { |shard_class|
-        Concurrent::Future.execute do
+        Concurrent::Future.execute(executer: self.class.thread_pool) do
           shard_class.connection_pool.with_connection do
             yield(scoped(shard_class))
           ensure
