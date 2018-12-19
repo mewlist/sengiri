@@ -43,6 +43,7 @@ namespace :sengiri do
 
       execute_on_shards = lambda do |task|
         dbconfs.each do |k,dbconf|
+          puts "execute on shard #{k}."
           ActiveRecord::Base.establish_connection dbconf
           db_ns[task].execute
         end
