@@ -19,11 +19,12 @@ namespace :sengiri do
     namespace :db do
 
       dbconfs = Rails.application.config.database_configuration.select {|name|
-        /^#{shard}/ =~ name
-      }.select {|name|
-        rails_env_list.select {|env|
-          /_#{env}$/ =~ name
-        }.present?
+        env = rails_env_list.detect {|env| /_#{env}$/.match?(name)}
+        shard_name = Sengiri::Model::Base.parse_shard_name(name, sharding_group_name: shard, env: env)
+
+        /^#{shard}/.match?(name) &&
+            env &&
+            (ENV['SHARD_NAME'].blank? || shard_name == ENV['SHARD_NAME'])
       }
       switch_db_config = lambda do
         puts "now on '#{shard}' shard."
