@@ -81,8 +81,12 @@ module Sengiri
 
         def shard_names
           @shard_names ||= dbconfs.map do |k,v|
-            k.gsub("#{@sharding_group_name}_shard_", '').gsub(/_#{env}#{@sharding_database_suffix}$/, '')
+            parse_shard_name(k, sharding_group_name: @sharding_group_name, env: env, sharding_database_suffix: @sharding_database_suffix)
           end
+        end
+
+        def parse_shard_name(spec_name, sharding_group_name:, env:, sharding_database_suffix: nil)
+          spec_name.gsub("#{sharding_group_name}_shard_", '').gsub(/_#{env}#{sharding_database_suffix}$/, '')
         end
 
         def establish_shard_connection
